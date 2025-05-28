@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Calculator.css";
 
 function Calculator() {
@@ -12,6 +12,56 @@ function Calculator() {
     setInput("");
     setResult("0");
     setEvaluated(false);
+  };
+
+  // Backspace: Remove last character from the input
+  const handleBackspace = () => {
+    if (input.length === 0) return;
+    const newInput = input.slice(0, -1);
+    setInput(newInput);
+    // Update the display based on the new input (show the last number)
+    const match = newInput.match(/(-?\d*\.?\d+)$/); // Match the last number in the input
+    if (match) {
+      setResult(match[0]);
+    } else {
+      setResult("0");
+    }
+  };
+
+  const handlePlusMinus = () => {
+    // If evaluated, simply toggle the result and start a new expression.
+    if (evaluated) {
+      const toggled = String(Number(result) * -1);
+      setResult(toggled);
+      setInput(toggled);
+      setEvaluated(false);
+      return;
+    }
+    const re = /(-?\d*\.?\d+)$/;
+    const match = input.match(re);
+    if (match) {
+      const oldNumber = match[0];
+      // Toggle sign: remove '-' if present, add '-' if not.
+      const toggled = oldNumber.startsWith("-")
+        ? oldNumber.slice(1)
+        : "-" + oldNumber;
+      const newInput = input.slice(0, input.length - oldNumber.length) + toggled;
+      setInput(newInput);
+      setResult(toggled);
+    }
+  };
+
+  // Converts the last entered number into its percentage value.
+  const handlePercent = () => {
+    const re = /(-?\d*\.?\d+)$/;
+    const match = input.match(re);
+    if (match) {
+      const original = match[0];
+      const percentVal = String(Number(original) / 100);
+      const newInput = input.slice(0, input.length - original.length) + percentVal;
+      setInput(newInput);
+      setResult(percentVal);
+    }
   };
 
   // Adds a number to the display and formula.
@@ -113,6 +163,34 @@ function Calculator() {
     }
   };
 
+  // Keyboard support for numbers, operators, Enter, Backspace, and Escape.
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const { key } = event;
+
+      // If key is a digit (0-9)
+      if (!isNaN(key) && key !== " ") {
+        handleNumber(key);
+      } else if (key === ".") {
+        handleDecimal();
+      } else if (key === "+" || key === "-") {
+        handleOperator(key);
+      } else if (key === "*" || key === "x" || key === "X") {
+        handleOperator("x");
+      } else if (key === "/" || key === "÷") {
+        handleOperator("÷");
+      } else if (key === "Enter" || key === "=") {
+        handleEquals();
+      } else if (key === "Backspace") {
+        handleBackspace();
+      } else if (key === "Escape") {
+        handleClear();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [input, result, evaluated]);
+
   return (
     <div className="calculator">
       {/* This element’s id is used for displaying current input/output */}
@@ -120,63 +198,36 @@ function Calculator() {
         {result}
       </div>
       <div className="buttons">
+        {/*First Row*/}
         {/* Clear Button */}
-        <button id="clear" onClick={handleClear}>
-          AC
-        </button>
-        {/* Division */}
-        <button id="divide" onClick={() => handleOperator("÷")}>
-          ÷
-        </button>
-        {/* Multiplication */}
-        <button id="multiply" onClick={() => handleOperator("x")}>
-          x
-        </button>
-        {/* Subtraction */}
-        <button id="subtract" onClick={() => handleOperator("-")}>
-          -
-        </button>
-        {/* Number Buttons */}
-        <button id="seven" onClick={() => handleNumber("7")}>
-          7
-        </button>
-        <button id="eight" onClick={() => handleNumber("8")}>
-          8
-        </button>
-        <button id="nine" onClick={() => handleNumber("9")}>
-          9
-        </button>
-        <button id="add" onClick={() => handleOperator("+")}>
-          +
-        </button>
-        <button id="four" onClick={() => handleNumber("4")}>
-          4
-        </button>
-        <button id="five" onClick={() => handleNumber("5")}>
-          5
-        </button>
-        <button id="six" onClick={() => handleNumber("6")}>
-          6
-        </button>
-        <button id="one" onClick={() => handleNumber("1")}>
-          1
-        </button>
-        <button id="two" onClick={() => handleNumber("2")}>
-          2
-        </button>
-        <button id="three" onClick={() => handleNumber("3")}>
-          3
-        </button>
-        <button id="zero" onClick={() => handleNumber("0")}>
-          0
-        </button>
-        <button id="decimal" onClick={handleDecimal}>
-          .
-        </button>
+        <button id="clear" onClick={handleClear}>AC</button>
+        {/* Delete Button */}
+        <button id="delete" onClick={handleBackspace}>DEL</button>
+        {/* Plus/Minus Button */}
+        <button id="plusminus" onClick={handlePlusMinus}>±</button>
+        <button id="divide" onClick={() => handleOperator("÷")}>÷</button>
+        {/*Second Row*/}
+        <button id="multiply" onClick={() => handleOperator("x")}>x</button>
+        <button id="seven" onClick={() => handleNumber("7")}>7</button>
+        <button id="eight" onClick={() => handleNumber("8")}>8</button>
+        <button id="nine" onClick={() => handleNumber("9")}>9</button>
+        <button id="subtract" onClick={() => handleOperator("-")}>-</button>
+        {/* Third Row */}
+        <button id="four" onClick={() => handleNumber("4")}>4</button>
+        <button id="five" onClick={() => handleNumber("5")}>5</button>
+        <button id="six" onClick={() => handleNumber("6")}>6</button>
+        <button id="add" onClick={() => handleOperator("+")}>+</button>
+        {/* Fourth Row */}
+        <button id="one" onClick={() => handleNumber("1")}>1</button>
+        <button id="two" onClick={() => handleNumber("2")}>2</button>
+        <button id="three" onClick={() => handleNumber("3")}>3</button>
+        {/* Percent and Decimal Buttons */}
+        <button id="percent" onClick={handlePercent}>%</button>
+        {/* Fifth Row */}
+        <button id="zero" onClick={() => handleNumber("0")}>0</button>
+        <button id="decimal" onClick={handleDecimal}>.</button>
         {/* Equals button */}
-        <button id="equals" onClick={handleEquals}>
-          =
-        </button>
+        <button id="equals" onClick={handleEquals}>=</button>
       </div>
     </div>
   );
