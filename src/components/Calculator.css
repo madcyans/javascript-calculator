@@ -8,16 +8,27 @@
 }
 
 .display {
-  height: 60px;
   background-color: #222;
   color: #fff;
   text-align: right;
-  font-size: 2em;
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 4px;
   word-wrap: break-word;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
+
+.expression-display {
+  font-size: 0.9rem;
+  color: gray;
+}
+
+.main-result {
+  font-size: 2em;
+}
+
 
 .buttons {
   display: grid;
